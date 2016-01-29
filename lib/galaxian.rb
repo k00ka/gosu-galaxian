@@ -130,4 +130,10 @@ class Galaxian < Gosu::Window
   def game_over
     self.close
   end
+
+  public
+
+  def score
+    @score
+  end
 end
