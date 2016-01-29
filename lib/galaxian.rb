@@ -2,7 +2,7 @@ require 'rubygems'
 require 'gosu'
 
 class Galaxian < Gosu::Window
-  attr_reader :images, :audio, :delta, :aliens, :bullets, :ship
+  attr_reader :images, :audio, :delta, :aliens, :bullets, :ship, :squads
   attr_accessor :score
 
   IMAGE_ASSETS = {
@@ -26,6 +26,7 @@ class Galaxian < Gosu::Window
     @ship = nil
     @bullets = []
     @aliens = []
+    @squads = []
   end
 
   def show
@@ -95,13 +96,19 @@ class Galaxian < Gosu::Window
   end
 
   def spawn_enemies
-    if rand(100) < 400 * @delta
-      @aliens.push(Alien.new)
+    # to reduce squad frequency we changed the if from 400 * delta to 80 * delta
+    if rand(100) < 80 * @delta
+      squad = AlienSquadron.new
+      @squads.push(squad)
+      squad.get_aliens.each do |alien|
+        @aliens.push(alien)
+      end
     end
   end
 
   def handle_kills
     @aliens.reject! {|x| x.killed? }
+    @squads.reject! {|x| x.killed? }
     @bullets.reject! {|x| x.killed? }
     self.game_over if @ship.killed?
   end
@@ -196,6 +203,13 @@ class Bullet
       end
     end
 
+    # bonus points for killing the entire squad
+    $game.squads.each do |squad|
+      if squad.killed?
+        $game.score += 100000
+      end
+    end
+
     # destroy the laser when out of the screen
     self.kill! if @y < -15
   end
@@ -204,9 +218,9 @@ end
 class Alien
   include Sprite
 
-  def initialize
+  def initialize(x_pos)
     self.initialize_sprite
-    @x = rand($game.width)
+    @x = x_pos || rand($game.width)
     @y = -80
     @z = 1
     @image = $game.images[:alien]
@@ -226,5 +240,20 @@ class Alien
 
     # destroy alien when out of the screen
     self.kill! if @y > $game.height + 25
+  end
+end
+
+class AlienSquadron
+  # stub to be implemented by our partners
+  def initialize
+    @squad_aliens = [Alien.new(100),Alien.new(200),Alien.new(300)]
+  end
+
+  def get_aliens
+    @squad_aliens
+  end
+
+  def killed?
+    @squad_aliens.all? {|alien| alien.killed? }
   end
 end
