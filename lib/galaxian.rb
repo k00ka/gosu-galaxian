@@ -1,6 +1,10 @@
 require 'rubygems'
 require 'gosu'
 
+require_relative 'alien_squadron'
+require_relative 'bullet'
+require_relative 'ship'
+
 class Galaxian < Gosu::Window
   attr_reader :images, :audio, :delta, :aliens, :bullets, :ship, :squads
   attr_accessor :score
@@ -51,12 +55,21 @@ class Galaxian < Gosu::Window
   def update
     self.update_delta
     self.spawn_enemies
+    self.release_alien
 
     @ship.update
     @bullets.each {|bullet| bullet.update }
     @aliens.each {|alien| alien.update }
 
     self.handle_kills
+  end
+
+  def release_alien
+    @aliens.each do |alien|
+      if rand(500) == 0
+        alien.released = true
+      end
+    end
   end
 
   def button_up(key)
@@ -98,7 +111,7 @@ class Galaxian < Gosu::Window
   #CLEAN ME SEYMORE
   def spawn_enemies
     # to reduce squad frequency we changed the if from 400 * delta to 80 * delta
-    if rand(100) < 80 * @delta
+    if @squads == []
       squad = AlienSquadron.new
       @squads.push(squad)
       squad.get_aliens.each do |alien|
@@ -116,145 +129,5 @@ class Galaxian < Gosu::Window
 
   def game_over
     self.close
-  end
-end
-
-module Sprite
-  attr_accessor :x, :y, :z, :angle, :image, :radius
-
-  def initialize_sprite
-    @killed = false
-    @x = 0
-    @y = 0
-    @z = 0
-    @angle = 0
-    @image = nil
-    @image_index = 0
-    @radius = 0 # circular boundign box size
-  end
-
-  def killed?
-    @killed
-  end
-
-  def kill!
-    @killed = true
-  end
-
-  def colliding?(other)
-    if @radius.zero? or other.radius.zero?
-      false
-    else
-      Gosu::distance(@x, @y, other.x, other.y) < (@radius + other.radius)
-    end
-  end
-
-  def draw
-    @image.draw_rot(@x, @y, @z, @angle) unless @image.nil?
-  end
-end
-
-class Ship
-  include Sprite
-  SPEED = 350 # pixels / second
-
-  def initialize
-    self.initialize_sprite
-    @x = $game.width / 2
-    @y = $game.height - 50
-    @image = $game.images[:ship]
-    @z = 10
-    @radius = 30
-  end
-
-  def update
-    # move horizontally if <- or -> are pressed
-    @x -= SPEED * $game.delta if $game.button_down?(Gosu::KbLeft)
-    @x += SPEED * $game.delta if $game.button_down?(Gosu::KbRight)
-    # clamp @x so the ship always stays inside the screen
-    @x = [[@x, $game.width].min, 0].max
-  end
-end
-
-class Bullet
-  include Sprite
-  SPEED = 400 # pixels / second
-
-  def initialize(x, y)
-    self.initialize_sprite
-    @x = x
-    @y = y
-    @image = $game.images[:bullet]
-    @z = 1
-    @radius = 10
-  end
-
-  def update
-    # move upwards
-    @y -= SPEED * $game.delta
-
-    # collisions against aliens
-    $game.aliens.each do |alien|
-      if self.colliding?(alien)
-        # destroy both alien and bullet
-        alien.kill!
-        self.kill!
-        $game.score += 10 # increase score
-        $game.audio[:kill].play # play explosion sfx
-      end
-    end
-
-    # bonus points for killing the entire squad
-    $game.squads.each do |squad|
-      if squad.killed?
-        $game.score += 100000
-      end
-    end
-
-    # destroy the laser when out of the screen
-    self.kill! if @y < -15
-  end
-end
-
-class Alien
-  include Sprite
-
-  def initialize(x_pos)
-    self.initialize_sprite
-    @x = x_pos || rand($game.width)
-    @y = -80
-    @z = 1
-    @image = $game.images[:alien]
-    @radius = 20
-
-    # Change from random horizontal and vertical speed
-    @speed_x = [-1, 1].sample * rand(50)
-    @speed_y = 100 + rand(200)
-  end
-
-  def update
-    @x += @speed_x * $game.delta
-    @y += @speed_y * $game.delta
-
-    # collisions against the ship
-    $game.ship.kill! if self.colliding?($game.ship)
-
-    # destroy alien when out of the screen
-    self.kill! if @y > $game.height + 25
-  end
-end
-
-class AlienSquadron
-  # stub to be implemented by our partners
-  def initialize
-    @squad_aliens = [Alien.new(100),Alien.new(200),Alien.new(300)]
-  end
-
-  def get_aliens
-    @squad_aliens
-  end
-
-  def killed?
-    @squad_aliens.all? {|alien| alien.killed? }
   end
 end
