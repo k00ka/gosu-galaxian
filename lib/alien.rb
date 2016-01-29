@@ -13,8 +13,8 @@ class Alien
     @released = false
 
     # Change from random horizontal and vertical speed
-    @speed_x = [-1, 1].sample * rand(50)
-    @speed_y = 100
+    @speed_x = [-1, 1].sample * rand(50 * speed_up_factor)
+    @speed_y = 100 * speed_up_factor
   end
 
   def update
@@ -23,7 +23,6 @@ class Alien
       @y += @speed_y * 2 * $game.delta
     else
       @y += @speed_y * $game.delta
-      # @x += @speed_x * $game.delta
     end
 
     # collisions against the ship
@@ -31,5 +30,9 @@ class Alien
 
     # destroy alien when out of the screen
     self.kill! if @y > $game.height + 25
+  end
+
+  def speed_up_factor
+    2 - 1 / ($game.score / 40 + 1)
   end
 end
