@@ -2,7 +2,7 @@ require 'rubygems'
 require 'gosu'
 
 class Galaxian < Gosu::Window
-  attr_reader :images, :audio, :delta, :aliens, :bullets, :ship
+  attr_reader :images, :audio, :delta, :aliens, :bullets, :ship, :squads
   attr_accessor :score
 
   IMAGE_ASSETS = {
@@ -26,6 +26,7 @@ class Galaxian < Gosu::Window
     @ship = nil
     @bullets = []
     @aliens = []
+    @squads = []
   end
 
   def show
@@ -96,14 +97,19 @@ class Galaxian < Gosu::Window
 
   #CLEAN ME SEYMORE
   def spawn_enemies
-    if rand(100) < 400 * @delta
-      squadron = AlienSquadron.new
-      @aliens.push(squadron.alien)
+    # to reduce squad frequency we changed the if from 400 * delta to 80 * delta
+    if rand(100) < 80 * @delta
+      squad = AlienSquadron.new
+      @squads.push(squad)
+      squad.get_aliens.each do |alien|
+        @aliens.push(alien)
+      end
     end
   end
 
   def handle_kills
     @aliens.reject! {|x| x.killed? }
+    @squads.reject! {|x| x.killed? }
     @bullets.reject! {|x| x.killed? }
     self.game_over if @ship.killed?
   end
@@ -198,6 +204,13 @@ class Bullet
       end
     end
 
+    # bonus points for killing the entire squad
+    $game.squads.each do |squad|
+      if squad.killed?
+        $game.score += 100000
+      end
+    end
+
     # destroy the laser when out of the screen
     self.kill! if @y < -15
   end
@@ -231,19 +244,17 @@ class Alien
   end
 end
 
-
 class AlienSquadron
-
-  attr_reader :alien
-
+  # stub to be implemented by our partners
   def initialize
-    # Currently spawns one enemy at one of five random locations at the top of the screen
-    # Improve this to spawn a group
-    @spawn_x = rand(5) * ($game.width/5)
-    @alien = Alien.new(@spawn_x)
+    @squad_aliens = [Alien.new(100),Alien.new(200),Alien.new(300)]
   end
 
-  def update
+  def get_aliens
+    @squad_aliens
   end
 
+  def killed?
+    @squad_aliens.all? {|alien| alien.killed? }
+  end
 end
