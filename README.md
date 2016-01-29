@@ -20,3 +20,11 @@ The speed-sprint project can be found here: https://github.com/k00ka/speed-sprin
 4. increased speed and frequency of diving
 
   The game needs to get more challenging. More diving enemies, more frequently, more more more! Maybe diving enemies could drop some bombs as they fall as well.
+
+# TEAM 3
+1. Allowed Alien class initializer to accept an x position for spawning aliens.
+2. Implemented AlienSquadron which will spawn one alien at one of five random positions.
+
+# To-Do
+1. Allow groups of aliens to spawn in blocks at a fixed location.
+2. Don't spawn a new group until the old one is destroyed.
