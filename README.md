@@ -17,6 +17,8 @@ Team 3
 
   The user should see 2 enemies dive off from the main block and fall to the bottom of the window. The user should die if he collides with a falling enemy. Enemies that fall off screen should return to their block.
 
+  Team 1: Aliens currently dive ONE at a time. The Galaxian.update method calls Galaxian.release_alien. Each call has a 1/500 chance of releasing the alien from the squadron, effectively doubling its vertical speed and adding horizontal motion. Try to make this move two at a time instead of just one. 
+
 3. sound (shots, collisions, movement, diving)
 
   We need some SFX to jazz this game up! Use some fun sounds for various game events.

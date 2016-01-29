@@ -29,7 +29,7 @@ class Bullet
     # bonus points for killing the entire squad
     $game.squads.each do |squad|
       if squad.killed?
-        $game.score += 100000
+        $game.score += 1000
       end
     end
 
