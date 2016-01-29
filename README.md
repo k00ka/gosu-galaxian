@@ -34,3 +34,6 @@ Team 3
 # To-Do
 1. Allow groups of aliens to spawn in blocks at a fixed location.
 2. Don't spawn a new group until the old one is destroyed.
+
+[Team 5]
+Add new speed addition so aliens fall down faster as more points get added
