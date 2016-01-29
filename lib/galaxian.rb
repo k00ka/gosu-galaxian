@@ -94,9 +94,11 @@ class Galaxian < Gosu::Window
     @audio[:shoot].play
   end
 
+  #CLEAN ME SEYMORE
   def spawn_enemies
     if rand(100) < 400 * @delta
-      @aliens.push(Alien.new)
+      squadron = AlienSquadron.new
+      @aliens.push(squadron.alien)
     end
   end
 
@@ -204,15 +206,15 @@ end
 class Alien
   include Sprite
 
-  def initialize
+  def initialize(x_pos)
     self.initialize_sprite
-    @x = rand($game.width)
+    @x = x_pos || rand($game.width)
     @y = -80
     @z = 1
     @image = $game.images[:alien]
     @radius = 20
 
-    # random horizontal and vertical speed
+    # Change from random horizontal and vertical speed
     @speed_x = [-1, 1].sample * rand(50)
     @speed_y = 100 + rand(200)
   end
@@ -227,4 +229,21 @@ class Alien
     # destroy alien when out of the screen
     self.kill! if @y > $game.height + 25
   end
+end
+
+
+class AlienSquadron
+
+  attr_reader :alien
+
+  def initialize
+    # Currently spawns one enemy at one of five random locations at the top of the screen
+    # Improve this to spawn a group
+    @spawn_x = rand(5) * ($game.width/5)
+    @alien = Alien.new(@spawn_x)
+  end
+
+  def update
+  end
+
 end
